@@ -1,11 +1,11 @@
-package com.synkov.mangement
+package com.synkov.management
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class MangementApplication
+class ManagementApplication
 
 fun main(args: Array<String>) {
-    runApplication<MangementApplication>(*args)
+    runApplication<ManagementApplication>(*args)
 }

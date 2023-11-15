@@ -1,10 +1,10 @@
-package com.synkov.mangement
+package com.synkov.management
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class MangementApplicationTests {
+class ManagementApplicationTests {
 
     @Test
     fun contextLoads() {
