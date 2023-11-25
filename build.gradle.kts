@@ -22,12 +22,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-
-    implementation("org.telegram:telegrambots-spring-boot-starter:6.8.0")
-    implementation("org.telegram:telegrambots-abilities:6.8.0")
-
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.slf4j:slf4j-api")
+    implementation("com.github.pengrad:java-telegram-bot-api:6.9.1")
+    implementation("org.postgresql:r2dbc-postgresql:1.0.2.RELEASE")
+    implementation("org.postgresql:postgresql:42.6.0")
+    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
 }

@@ -1,0 +1,14 @@
+
+spring:
+  r2dbc:
+    url: r2dbcs:postgresql://${DIGITAL_PAYMENT_SERVICE_DB_HOST:localhost}:${DIGITAL_PAYMENT_SERVICE_DB_PORT:5432}/${DIGITAL_PAYMENT_SERVICE_DB_NAME:postgres-db}?sslmode=${DIGITAL_PAYMENT_SERVICE_DB_SSL_MODE:disable}&serverTimezone=${DIGITAL_PAYMENT_SERVICE_SERVER_TIMEZONE:Europe/Moscow}&useUnicode=yes&characterEncoding=UTF-8
+    username: ${DIGITAL_PAYMENT_SERVICE_DB_USER:postgres-user}
+    password: ${DIGITAL_PAYMENT_SERVICE_DB_PASSWORD:postgres-password}
+    pool:
+      enabled: true
+      validation-query: "SELECT 1;"
+      max-acquire-time: 5m
+      initial-size: 10
+      max-size: 20
+      max-idle-time: 30m
+      validation-depth: remote
