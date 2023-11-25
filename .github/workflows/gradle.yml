@@ -25,3 +25,5 @@ jobs:
           gradle-version: 8.4
       - name: Execute Gradle build
         run: ./gradlew clean bootJar
+      - name: Execute Gradle tests
+        run: ./gradlew clean test

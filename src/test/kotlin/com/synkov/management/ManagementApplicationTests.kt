@@ -14,8 +14,6 @@ class ManagementApplicationTests @Autowired constructor(
 
     @Test
     fun contextLoads() {
-        val a = todoistClient.findTasks().collectList().block()
 
-        println()
     }
 }
