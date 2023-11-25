@@ -3,7 +3,7 @@ package com.synkov.management.notification
 import java.time.LocalDateTime
 import java.util.*
 
-data class NotificationTask(
+data class Notification(
     val id: UUID,
     val externalId: String,
     val content: String,

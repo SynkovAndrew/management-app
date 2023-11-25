@@ -1,4 +1,4 @@
-package com.synkov.management.todoist
+package com.synkov.management.task
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

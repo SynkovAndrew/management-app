@@ -9,12 +9,12 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Component
-interface NotificationTaskRepository : ReactiveCrudRepository<NotificationTask, UUID> {
+interface NotificationRepository : ReactiveCrudRepository<Notification, UUID> {
 
-    fun findByTimestampAfterAndCompleted(timestamp: LocalDateTime, completed: Boolean): Flux<NotificationTask>
+    fun findByTimestampAfterAndCompleted(timestamp: LocalDateTime, completed: Boolean): Flux<Notification>
 
     fun countByExternalId(externalId: String): Mono<Long>
 
-    @Query("UPDATE notification_task SET completed = true WHERE id = :notificationTaskId")
-    fun complete(notificationTaskId: UUID): Mono<UUID>
+    @Query("UPDATE notification SET completed = true WHERE id = :notificationId")
+    fun complete(notificationId: UUID): Mono<UUID>
 }

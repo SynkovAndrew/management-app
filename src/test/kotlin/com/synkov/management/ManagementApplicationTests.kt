@@ -1,7 +1,7 @@
 package com.synkov.management
 
 import com.synkov.management.telegram.TelegramClient
-import com.synkov.management.todoist.TodoistClient
+import com.synkov.management.task.TodoistClient
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -14,6 +14,8 @@ class ManagementApplicationTests @Autowired constructor(
 
     @Test
     fun contextLoads() {
-        telegramClient.sendMessage("AAAA")
+        val a = todoistClient.findTasks().collectList().block()
+
+        println()
     }
 }

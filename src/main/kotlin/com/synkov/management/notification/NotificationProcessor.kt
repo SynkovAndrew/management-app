@@ -15,8 +15,8 @@ import java.time.Duration
 import java.time.LocalDateTime
 
 @Component
-class NotificationTaskProcessor(
-    private val notificationTaskRepository: NotificationTaskRepository,
+class NotificationProcessor(
+    private val notificationRepository: NotificationRepository,
     private val transactionalOperator: TransactionalOperator,
     private val telegramClient: TelegramClient
 ) {
@@ -27,20 +27,20 @@ class NotificationTaskProcessor(
         disposable.dispose()
     }
 
-    @PostConstruct
+   // @PostConstruct
     fun start() {
         val subscription = Flux.interval(Duration.ofSeconds(5))
-            .doOnSubscribe { NotificationTaskScheduler.log.info("Notification task processor started") }
-            .doFinally { NotificationTaskScheduler.log.info("Notification task processor stopped") }
+            .doOnSubscribe { log.info("Notification processor started") }
+            .doFinally { log.info("Notification processor stopped") }
             .concatMap {
-                notificationTaskRepository
+                notificationRepository
                     .findByTimestampAfterAndCompleted(LocalDateTime.now(), false)
                     .doOnNext { log.info("{} is processing ...", it) }
-                    .concatMap { notificationTask ->
-                        Mono.just(notificationTask)
+                    .concatMap { notification ->
+                        Mono.just(notification)
                             .doOnNext { telegramClient.sendMessage(getMessage(it)) }
-                            .flatMap { notificationTaskRepository.complete(it.id) }
-                            .doOnSuccess { log.info("{} is processed successfully", notificationTask) }
+                            .flatMap { notificationRepository.complete(it.id) }
+                            .doOnSuccess { log.info("{} is processed successfully", notification) }
                     }
                     .`as`(transactionalOperator::transactional)
                     .doOnError { log.error("Error occurred", it) }
@@ -51,8 +51,8 @@ class NotificationTaskProcessor(
         disposable.add(subscription)
     }
 
-    private fun getMessage(notificationTask: NotificationTask) : String {
-        return with(notificationTask) {
+    private fun getMessage(notification: Notification) : String {
+        return with(notification) {
             "REMIND: $timestamp - $content"
         }
     }

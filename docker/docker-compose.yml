@@ -4,7 +4,7 @@ services:
   app:
     image: 'andrewsynkov/management-service:latest'
     build:
-      context: .
+      context: ..
     container_name: app
     ports:
       - "8081:8080"
