@@ -3,8 +3,7 @@ version: '3'
 services:
   app:
     image: 'andrewsynkov/management-service:latest'
-    build:
-      context: ..
+    build: .
     container_name: app
     ports:
       - "8081:8080"

@@ -9,9 +9,9 @@ telegram:
 
 spring:
   r2dbc:
-    url: r2dbcs:postgresql://${DIGITAL_PAYMENT_SERVICE_DB_HOST:localhost}:${DIGITAL_PAYMENT_SERVICE_DB_PORT:5432}/${DIGITAL_PAYMENT_SERVICE_DB_NAME:postgres-db}?sslmode=${DIGITAL_PAYMENT_SERVICE_DB_SSL_MODE:disable}&serverTimezone=${DIGITAL_PAYMENT_SERVICE_SERVER_TIMEZONE:Europe/Moscow}&useUnicode=yes&characterEncoding=UTF-8
-    username: ${DIGITAL_PAYMENT_SERVICE_DB_USER:postgres-user}
-    password: ${DIGITAL_PAYMENT_SERVICE_DB_PASSWORD:postgres-password}
+    url: r2dbcs:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:postgres-db}?sslmode=${DB_SSL_MODE:disable}&serverTimezone=${SERVER_TIMEZONE:Europe/Moscow}&useUnicode=yes&characterEncoding=UTF-8
+    username: ${DB_USER:postgres-user}
+    password: ${DB_PASSWORD:postgres-password}
     pool:
       enabled: true
       validation-query: "SELECT 1;"
