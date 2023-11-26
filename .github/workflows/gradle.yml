@@ -42,7 +42,7 @@ jobs:
           echo "${{secrets.SERVER_SSH_PRIVATE_KEY}}" > ~/.ssh/id_rsa
           ssh-keyscan -H ${{secrets.SERVER_HOST}} > ~/.ssh/known_hosts
       - name: Ps
-        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker container ps"
+        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker ps -a -q --filter ancestor=${{env.DOCKER_IMAGE_NAME}}"
 
       - name: Remove old docker container
         run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker rm $(docker stop $(docker ps -a -q --filter ancestor=${{env.DOCKER_IMAGE_NAME}}))"
