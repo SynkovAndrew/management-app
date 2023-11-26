@@ -8,7 +8,8 @@ on:
 
 permissions:
   contents: read
-
+env:
+  DOCKER_IMAGE_NAME: andrewsynkov/management-service:latest
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,6 +26,8 @@ jobs:
           gradle-version: 8.4
       - name: Execute Gradle build
         run: ./gradlew clean test bootJar
+      - name: Login to Docker
+        run: echo ${{ secrets.DOCKER_REGISTRY_ACCESS_TOKEN }} | docker login -u andrewsynkov --password-stdin
       - name: Build Docker image
         run: docker build --platform linux/amd64/v2 -t management-service . --file Dockerfile --tag andrewsynkov/management-service:latest
       - name: Publish Docker image
