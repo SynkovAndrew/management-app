@@ -1,0 +1,29 @@
+todoist:
+  api-token: ${TODOIST_API_TOKEN:api-token}
+  host: ${TODOIST_HOST:todoist-host}
+
+telegram:
+  token: ${TELEGRAM_TOKEN:telegram-token}
+  bot: ${TELEGRAM_BOT:telegram-bot}
+  chat-id: ${TELEGRAM_CHAT_ID:chat-id}
+
+spring:
+  r2dbc:
+    url: r2dbcs:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:postgres-db}?sslmode=${DB_SSL_MODE:disable}&serverTimezone=${SERVER_TIMEZONE:Europe/Moscow}&useUnicode=yes&characterEncoding=UTF-8
+    username: ${DB_USER:postgres-user}
+    password: ${DB_PASSWORD:postgres-password}
+    pool:
+      enabled: true
+      validation-query: "SELECT 1;"
+      max-acquire-time: 5m
+      initial-size: 10
+      max-size: 20
+      max-idle-time: 30m
+      validation-depth: remote
+  liquibase:
+    enabled: true
+    change-log: "classpath:/db/changelog.xml"
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:postgres-db}?sslmode=${DB_SSL_MODE:disable}&serverTimezone=${SERVER_TIMEZONE:Europe/Moscow}&useUnicode=yes&characterEncoding=UTF-8
+    user: ${DB_USER:postgres-user}
+    password: ${DB_PASSWORD:postgres-password}
+    driver-class-name: org.postgresql.Driver
