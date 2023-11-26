@@ -66,13 +66,13 @@ jobs:
           echo "DB_USER=${{secrets.DB_USER}}" >> ~/.env
           echo "DB_PASSWORD=${{secrets.DB_PASSWORD}}" >> ~/.env
           echo "DB_PORT=5432" >> ~/.env
-      - name: Send env file to remote server
+      - name: Send docker compose env file to remote server
         run: scp ~/.env ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}}:~/
       - name: Send docker compose file to remote server
         run: scp ./docker/docker-compose.yml ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}}:~/
       - name: Docker compose up
         run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker compose -f ~/docker-compose.yml --env-file ~/.env up -d"
-      - name: Remove env files
+      - name: Remove docker compose files
         run: |
           ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} 'rm ~/.env'
           ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} 'rm ~/docker-compose.yml'

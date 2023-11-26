@@ -20,7 +20,7 @@ services:
     ports:
       - "8081:8080"
     depends_on:
-      - management-service-db
+      - db
 
   db:
     image: 'postgres:16.1-alpine'
