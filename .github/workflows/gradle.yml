@@ -74,5 +74,5 @@ jobs:
 
       - name: Run container from new image
         id: run-new-container
-        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker run -e TODOIST_API_TOKEN=${{TODOIST_API_TOKEN}} -e TODOIST_HOST=${{TODOIST_HOST}} -e TELEGRAM_TOKEN=${{TELEGRAM_TOKEN}} -e TELEGRAM_BOT=${{TELEGRAM_BOT}} -e TELEGRAM_CHAT_ID=${{TELEGRAM_CHAT_ID}} -e DB_USER=${{DB_USER}} -e DB_PASSWORD=${{DB_PASSWORD}} -p 8181:8080 --name management-service -d ${{env.DOCKER_IMAGE_NAME}}"
+        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker run -e TODOIST_API_TOKEN=${{secrets.TODOIST_API_TOKEN}} -e TODOIST_HOST=${{secrets.TODOIST_HOST}} -e TELEGRAM_TOKEN=${{secrets.TELEGRAM_TOKEN}} -e TELEGRAM_BOT=${{secrets.TELEGRAM_BOT}} -e TELEGRAM_CHAT_ID=${{secrets.TELEGRAM_CHAT_ID}} -e DB_USER=${{secrets.DB_USER}} -e DB_PASSWORD=${{secrets.DB_PASSWORD}} -p 8181:8080 --name management-service -d ${{env.DOCKER_IMAGE_NAME}}"
 
