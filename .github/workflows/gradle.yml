@@ -55,6 +55,7 @@ jobs:
           ssh-keyscan -H ${{secrets.SERVER_HOST}} > ~/.ssh/known_hosts
       - name: Create docker compose env file
         run: |
+          touch .env
           echo "TODOIST_API_TOKEN=${{secrets.TODOIST_API_TOKEN}}" >> .env
           echo "TODOIST_HOST=${{secrets.TODOIST_HOST}}" >> docker/.env
           echo "TELEGRAM_TOKEN=${{secrets.TELEGRAM_TOKEN}}" >> docker/.env
