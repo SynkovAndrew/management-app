@@ -42,23 +42,23 @@ jobs:
           install -m 600 -D /dev/null ~/.ssh/id_rsa
           echo "${{secrets.SERVER_SSH_PRIVATE_KEY}}" > ~/.ssh/id_rsa
           ssh-keyscan -H ${{secrets.SERVER_HOST}} > ~/.ssh/known_hosts
+
       - name: Get old container
         id: get-old-container
         run: echo "OLD_CONTAINER=$(ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker ps -a -q --filter ancestor=${{env.DOCKER_IMAGE_NAME}}")" >> "$GITHUB_OUTPUT"
-
 
       - name: Stop old docker container
         id: stop-old-container
         run: echo "OLD_IMAGE=$(ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker stop ${{steps.get-old-container.outputs.OLD_CONTAINER}}")" >> "$GITHUB_OUTPUT"
 
-
-      - name: Remove old docker container
-        id: remove-old-container
+      - name: Remove old docker image
+        id: remove-old-image
         run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker rm ${{steps.stop-old-container.outputs.OLD_IMAGE}}"
 
       - name: Pull new image
         id: pull-new-image
         run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker pull ${{env.DOCKER_IMAGE_NAME}}"
+
       - name: Run container from new image
         id: run-new-container
         run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker run -p 8181:8080 --name management-service -d ${{env.DOCKER_IMAGE_NAME}}"

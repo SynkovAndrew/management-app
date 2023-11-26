@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import reactor.core.Disposables
@@ -17,6 +18,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Component
+@DependsOn("liquibase")
 class NotificationProcessor(
     private val notificationRepository: NotificationRepository,
     private val transactionalOperator: TransactionalOperator,

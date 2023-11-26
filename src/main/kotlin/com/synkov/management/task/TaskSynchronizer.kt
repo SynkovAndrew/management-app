@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import reactor.core.Disposables
@@ -13,6 +14,7 @@ import reactor.core.scheduler.Schedulers
 import java.time.Duration
 
 @Component
+@DependsOn("liquibase")
 class TaskSynchronizer(
     private val todoistClient: TodoistClient,
     private val taskRepository: TaskRepository,
@@ -27,7 +29,7 @@ class TaskSynchronizer(
 
     @PostConstruct
     fun start() {
-        val subscription = Flux.interval(Duration.ofSeconds(5))
+        val subscription = Flux.interval(Duration.ofSeconds(60))
             .doOnSubscribe { log.info("Task synchronizer started") }
             .doFinally { log.info("Task Synchronizer stopped") }
             .concatMap {

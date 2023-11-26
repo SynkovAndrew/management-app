@@ -6,6 +6,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.DependsOn
 import org.springframework.stereotype.Component
 import org.springframework.transaction.reactive.TransactionalOperator
 import reactor.core.Disposables
@@ -19,6 +20,7 @@ import java.time.ZoneId
 import java.util.*
 
 @Component
+@DependsOn("liquibase")
 class NotificationScheduler(
     private val taskRepository: TaskRepository,
     private val notificationRepository: NotificationRepository,
@@ -33,7 +35,7 @@ class NotificationScheduler(
 
     @PostConstruct
     fun start() {
-        val subscription = Flux.interval(Duration.ofSeconds(5))
+        val subscription = Flux.interval(Duration.ofSeconds(60))
             .doOnSubscribe { log.info("Notification scheduler started") }
             .doFinally { log.info("Notification scheduler stopped") }
             .concatMap {

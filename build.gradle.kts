@@ -29,6 +29,7 @@ dependencies {
     implementation("org.postgresql:r2dbc-postgresql:1.0.2.RELEASE")
     implementation("org.postgresql:postgresql:42.6.0")
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+    implementation("org.liquibase:liquibase-core")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
 }

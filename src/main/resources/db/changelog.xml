@@ -1,0 +1,82 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="1" author="asynkov">
+        <createTable tableName="notification">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="task_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_at" type="TIMESTAMP(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notify_at" type="TIMESTAMP(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completed" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="2" author="asynkov">
+        <createTable tableName="task">
+            <column name="id" type="VARCHAR(64)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="is_completed" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_recurring" type="BOOLEAN">
+                <constraints nullable="true"/>
+            </column>
+            <column name="content" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="TIMESTAMP(6)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="datetime" type="TIMESTAMP(6)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="string" type="VARCHAR(25)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="timezone" type="VARCHAR(25)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="url" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_processed" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="3" author="asynkov">
+        <createTable tableName="task_label">
+            <column name="task_id" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
