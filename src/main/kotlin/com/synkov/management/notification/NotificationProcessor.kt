@@ -13,6 +13,8 @@ import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.time.Duration
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Component
 class NotificationProcessor(
@@ -21,29 +23,30 @@ class NotificationProcessor(
     private val telegramClient: TelegramClient
 ) {
     private val disposable = Disposables.composite()
+    private val dateTimeFormatter = DateTimeFormatter.ofPattern("d MMM uuuu HH:mm")
 
     @PreDestroy
     fun destroy() {
         disposable.dispose()
     }
 
-   // @PostConstruct
+    @PostConstruct
     fun start() {
         val subscription = Flux.interval(Duration.ofSeconds(5))
             .doOnSubscribe { log.info("Notification processor started") }
             .doFinally { log.info("Notification processor stopped") }
             .concatMap {
                 notificationRepository
-                    .findByTimestampAfterAndCompleted(LocalDateTime.now(), false)
-                    .doOnNext { log.info("{} is processing ...", it) }
-                    .concatMap { notification ->
+                    .findNextNotCompleted(nowAtZone("Europe/Moscow"))
+                    .doOnNext { log.info("{} is notifying ...", it) }
+                    .flatMap { notification ->
                         Mono.just(notification)
                             .doOnNext { telegramClient.sendMessage(getMessage(it)) }
                             .flatMap { notificationRepository.complete(it.id) }
-                            .doOnSuccess { log.info("{} is processed successfully", notification) }
+                            .doOnError { log.error("Failed to notify", it) }
+                            .doOnSuccess { log.info("{} is notified successfully", notification) }
                     }
                     .`as`(transactionalOperator::transactional)
-                    .doOnError { log.error("Error occurred", it) }
                     .onErrorResume { Mono.empty() }
             }
             .subscribeOn(Schedulers.boundedElastic())
@@ -51,9 +54,23 @@ class NotificationProcessor(
         disposable.add(subscription)
     }
 
-    private fun getMessage(notification: Notification) : String {
+    private fun getMessage(notification: Notification): String {
         return with(notification) {
-            "REMIND: $timestamp - $content"
+            buildString {
+                append("EVENT: $title\n\n")
+                append("WHEN: ${dateTimeFormatter.format(eventAt)}\n\n")
+                if (description.isNotEmpty()) append("DESCRIPTION: $description\n\n")
+                append("-------------------------------------------------")
+            }
+        }
+    }
+
+    private fun nowAtZone(zone: String): LocalDateTime {
+        return ZoneId.of("UTC").let { utcZone ->
+            LocalDateTime.now(utcZone)
+                .atZone(utcZone)
+                .withZoneSameInstant(ZoneId.of(zone))
+                .toLocalDateTime()
         }
     }
 

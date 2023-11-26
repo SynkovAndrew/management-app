@@ -49,7 +49,8 @@ class TaskSynchronizer(
     private fun addSynchronizedLabel(task: Task): Task {
         return task.copy(
             labels = task.labels?.let { it + TaskLabel.SYNCHRONIZED }
-                ?: listOf(TaskLabel.SYNCHRONIZED)
+                ?: listOf(TaskLabel.SYNCHRONIZED),
+
         )
     }
 

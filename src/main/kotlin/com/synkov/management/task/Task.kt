@@ -3,6 +3,7 @@ package com.synkov.management.task
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Task(
@@ -12,7 +13,9 @@ data class Task(
     val description: String,
     val labels: List<TaskLabel>?,
     val due: Due?,
-    val url: String
+    val url: String,
+    val isProcessed: Boolean = false,
+    val createdAt: LocalDateTime = LocalDateTime.now(ZoneId.of("UTC"))
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -5,8 +5,10 @@ import java.util.*
 
 data class Notification(
     val id: UUID,
-    val externalId: String,
-    val content: String,
-    val timestamp: LocalDateTime,
+    val taskId: String,
+    val title: String,
+    val description: String,
+    val eventAt: LocalDateTime,
+    val notifyAt: LocalDateTime,
     val completed: Boolean
 )
