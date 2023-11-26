@@ -10,7 +10,6 @@ permissions:
   contents: read
 env:
   DOCKER_IMAGE_NAME: andrewsynkov/management-service:latest
-  DB_HOST: postgres
 jobs:
   build:
     runs-on: ubuntu-latest
