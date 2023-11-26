@@ -25,7 +25,7 @@ jobs:
           gradle-version: 8.4
       - name: Execute Gradle build
         run: ./gradlew clean test bootJar
-      - name: Publish to Docker registry
-        run:
-          docker build --platform linux/amd64/v2 -t management-service . --tag andrewsynkov/management-service:latest
-          docker push andrewsynkov/management-service:latest
+      - name: Build Docker image
+        run: docker build --platform linux/amd64/v2 -t management-service . --tag andrewsynkov/management-service:latest
+      - name: Publish Docker image
+        run: docker push andrewsynkov/management-service:latest
