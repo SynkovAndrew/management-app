@@ -1,21 +1,35 @@
-version: '3'
+version: '3.8'
 
 services:
-  app:
+  management-service:
     image: 'andrewsynkov/management-service:latest'
-    build: .
-    container_name: app
+    restart: always
+    container_name: management-service
+    env_file: .env
+    environment:
+      TODOIST_API_TOKEN: $TODOIST_API_TOKEN
+      TODOIST_HOST: $TODOIST_HOST
+      TELEGRAM_TOKEN: $TELEGRAM_TOKEN
+      TELEGRAM_BOT: $TELEGRAM_BOT
+      TELEGRAM_CHAT_ID: $TELEGRAM_CHAT_ID
+      DB_HOST: $DB_HOST
+      DB_PORT: $DB_PORT
+      DB_NAME: $DB_NAME
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
     ports:
       - "8081:8080"
     depends_on:
-      - db
+      - management-service-db
 
   db:
     image: 'postgres:16.1-alpine'
     container_name: db
+    restart: no
+    env_file: .env
     environment:
-      POSTGRES_DB: postgres-db
-      POSTGRES_USER: postgres-user
-      POSTGRES_PASSWORD: postgres-password
+      POSTGRES_DB: management-service-db
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASSWORD
     ports:
       - "5432:5432"
