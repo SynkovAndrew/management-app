@@ -27,8 +27,23 @@ jobs:
       - name: Execute Gradle build
         run: ./gradlew clean test bootJar
       - name: Login to Docker
-        run: echo ${{ secrets.DOCKER_REGISTRY_ACCESS_TOKEN }} | docker login -u andrewsynkov --password-stdin
+        run: echo ${{secrets.DOCKER_REGISTRY_ACCESS_TOKEN}} | docker login -u andrewsynkov --password-stdin
       - name: Build Docker image
-        run: docker build --platform linux/amd64/v2 -t management-service . --file Dockerfile --tag andrewsynkov/management-service:latest
+        run: docker build --platform linux/amd64/v2 -t management-service . --file Dockerfile --tag ${{env.DOCKER_IMAGE_NAME}}
       - name: Publish Docker image
-        run: docker push andrewsynkov/management-service:latest
+        run: docker push ${{env.DOCKER_IMAGE_NAME}}
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ssh keys
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{secrets.SERVER_SSH_PRIVATE_KEY}}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{secrets.SERVER_HOST}} > ~/.ssh/known_hosts
+      - name: Remove old docker container
+        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker rm $(docker stop $(docker ps -a -q --filter ancestor=${{env.DOCKER_IMAGE_NAME}} --format="{{.ID}}"))"
+      - name: Pull new image
+        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker pull ${{env.DOCKER_IMAGE_NAME}}"
+      - name: Run container from new image
+        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker run -p 8181:8080 --name management-service -d ${{env.DOCKER_IMAGE_NAME}}"
+
