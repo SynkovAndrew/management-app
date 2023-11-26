@@ -48,6 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - uses: actions/checkout@v3
       - name: Install ssh keys
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
@@ -66,12 +67,15 @@ jobs:
           echo "DB_PASSWORD=${{secrets.DB_PASSWORD}}" >> ~/.env
           echo "DB_PORT=5432" >> ~/.env
       - name: Send env file to remote server
-        run: scp ~/.env ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}}:/${{secrets.SSH_SERVER_USER}}
+        run: scp ~/.env ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}}:~/
+      - name: Send docker compose file to remote server
+        run: scp ./docker/docker-compose.yml ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}}:~/
       - name: Docker compose up
-        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker compose up -d"
+        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker compose -f ~/docker-compose.yml --env-file ~/.env up -d"
       - name: Remove env files
         run: |
-          ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} 'rm /${{secrets.SSH_SERVER_USER}}/.env'
+          ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} 'rm ~/.env'
+          ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} 'rm ~/docker-compose.yml'
           rm ~/.env
       - name: Remove ssh files
         run: |
