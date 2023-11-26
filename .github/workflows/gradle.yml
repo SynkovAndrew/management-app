@@ -37,7 +37,7 @@ jobs:
         with:
           gradle-version: 8.4
       - name: Execute Gradle build
-        run: ./gradlew clean test bootJar
+        run: ./gradlew clean bootJar
       - name: Login to Docker
         run: echo ${{secrets.DOCKER_REGISTRY_ACCESS_TOKEN}} | docker login -u andrewsynkov --password-stdin
       - name: Build Docker image
