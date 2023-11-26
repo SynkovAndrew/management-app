@@ -55,24 +55,24 @@ jobs:
           ssh-keyscan -H ${{secrets.SERVER_HOST}} > ~/.ssh/known_hosts
       - name: Create docker compose env file
         run: |
-          sudo echo "TODOIST_API_TOKEN=${{secrets.TODOIST_API_TOKEN}}" > /.env
-          sudo echo "TODOIST_HOST=${{secrets.TODOIST_HOST}}" >> /.env
-          sudo echo "TELEGRAM_TOKEN=${{secrets.TELEGRAM_TOKEN}}" >> /.env
-          sudo echo "TELEGRAM_BOT=${{secrets.TELEGRAM_BOT}}" >> /.env
-          sudo echo "TELEGRAM_CHAT_ID=${{secrets.TELEGRAM_CHAT_ID}}" >> /.env
-          sudo echo "DB_HOST=db" >> /.env
-          sudo echo "DB_NAME=management-service-db" >> /.env
-          sudo echo "DB_USER=${{secrets.DB_USER}}" >> /.env
-          sudo echo "DB_PASSWORD=${{secrets.DB_PASSWORD}}" >> /.env
-          sudo echo "DB_PORT=5432" >> /.env
+          echo "TODOIST_API_TOKEN=${{secrets.TODOIST_API_TOKEN}}" > ~/.env
+          echo "TODOIST_HOST=${{secrets.TODOIST_HOST}}" >> ~/.env
+          echo "TELEGRAM_TOKEN=${{secrets.TELEGRAM_TOKEN}}" >> ~/.env
+          echo "TELEGRAM_BOT=${{secrets.TELEGRAM_BOT}}" >> ~/.env
+          echo "TELEGRAM_CHAT_ID=${{secrets.TELEGRAM_CHAT_ID}}" >> ~/.env
+          echo "DB_HOST=db" >> ~/.env
+          echo "DB_NAME=management-service-db" >> ~/.env
+          echo "DB_USER=${{secrets.DB_USER}}" >> ~/.env
+          echo "DB_PASSWORD=${{secrets.DB_PASSWORD}}" >> ~/.env
+          echo "DB_PORT=5432" >> ~/.env
       - name: Send env file to remote server
-        run: scp /.env ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}}:/${{secrets.SSH_SERVER_USER}}
+        run: scp ~/.env ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}}:/${{secrets.SSH_SERVER_USER}}
       - name: Docker compose up
         run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker compose up -d"
       - name: Remove env files
         run: |
           ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} 'rm /${{secrets.SSH_SERVER_USER}}/.env'
-          rm /.env
+          rm ~/.env
       - name: Remove ssh files
         run: |
           rm ~/.ssh/id_rsa
