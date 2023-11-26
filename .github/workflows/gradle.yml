@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 permissions:
-  contents: read
+  contents: write
 env:
   DOCKER_IMAGE_NAME: andrewsynkov/management-service:latest
 jobs:
