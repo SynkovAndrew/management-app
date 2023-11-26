@@ -3,7 +3,6 @@ version: '3.8'
 services:
   management-service:
     image: 'andrewsynkov/management-service:latest'
-    restart: always
     container_name: management-service
     env_file: .env
     environment:
@@ -25,7 +24,6 @@ services:
   db:
     image: 'postgres:16.1-alpine'
     container_name: db
-    restart: no
     env_file: .env
     environment:
       POSTGRES_DB: management-service-db

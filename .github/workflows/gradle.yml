@@ -70,8 +70,10 @@ jobs:
         run: scp ~/.env ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}}:~/
       - name: Send docker compose file to remote server
         run: scp ./docker/docker-compose.yml ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}}:~/
-      - name: Docker compose up
-        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker compose -f ~/docker-compose.yml --env-file ~/.env up -d"
+      - name: Docker compose up application
+        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker compose -f ~/docker-compose.yml --env-file ~/.env up management-service -d"
+      - name: Docker compose up db
+        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker compose -f ~/docker-compose.yml --env-file ~/.env up db --no-recreate -d"
       - name: Remove docker compose files
         run: |
           ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} 'rm ~/.env'
