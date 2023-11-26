@@ -10,9 +10,22 @@ permissions:
   contents: read
 env:
   DOCKER_IMAGE_NAME: andrewsynkov/management-service:latest
+  DB_HOST: postgres
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.1-alpine
+        env:
+          POSTGRES_DB: postgres-db
+          POSTGRES_USER: postgres-user
+          POSTGRES_PASSWORD: postgres-password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 17
@@ -61,5 +74,5 @@ jobs:
 
       - name: Run container from new image
         id: run-new-container
-        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker run -p 8181:8080 --name management-service -d ${{env.DOCKER_IMAGE_NAME}}"
+        run: ssh ${{secrets.SSH_SERVER_USER}}@${{secrets.SERVER_HOST}} "docker run -e TODOIST_API_TOKEN=${{TODOIST_API_TOKEN}} -e TODOIST_HOST=${{TODOIST_HOST}} -e TELEGRAM_TOKEN=${{TELEGRAM_TOKEN}} -e TELEGRAM_BOT=${{TELEGRAM_BOT}} -e TELEGRAM_CHAT_ID=${{TELEGRAM_CHAT_ID}} -e DB_USER=${{DB_USER}} -e DB_PASSWORD=${{DB_PASSWORD}} -p 8181:8080 --name management-service -d ${{env.DOCKER_IMAGE_NAME}}"
 

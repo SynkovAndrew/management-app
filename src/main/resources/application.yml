@@ -1,11 +1,11 @@
 todoist:
-  api-token: ${TODOIST_API_TOKEN}
-  host: ${TODOIST_HOST}
+  api-token: ${TODOIST_API_TOKEN:api-token}
+  host: ${TODOIST_HOST:todoist-host}
 
 telegram:
-  token: ${TELEGRAM_TOKEN}
-  bot: ${TELEGRAM_BOT}
-  chat-id: ${TELEGRAM_CHAT_ID}
+  token: ${TELEGRAM_TOKEN:telegram-token}
+  bot: ${TELEGRAM_BOT:telegram-bot}
+  chat-id: ${TELEGRAM_CHAT_ID:chat-id}
 
 spring:
   r2dbc:
