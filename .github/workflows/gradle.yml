@@ -26,6 +26,6 @@ jobs:
       - name: Execute Gradle build
         run: ./gradlew clean test bootJar
       - name: Build Docker image
-        run: docker build --platform linux/amd64/v2 -t management-service . --tag andrewsynkov/management-service:latest
+        run: docker build --platform linux/amd64/v2 -t management-service . --file Dockerfile --tag andrewsynkov/management-service:latest
       - name: Publish Docker image
         run: docker push andrewsynkov/management-service:latest
