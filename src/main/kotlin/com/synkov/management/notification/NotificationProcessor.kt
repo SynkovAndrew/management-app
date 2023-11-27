@@ -15,7 +15,6 @@ import reactor.core.scheduler.Schedulers
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @Component
 @DependsOn("liquibase")
@@ -25,7 +24,6 @@ class NotificationProcessor(
     private val telegramClient: TelegramClient
 ) {
     private val disposable = Disposables.composite()
-    private val dateTimeFormatter = DateTimeFormatter.ofPattern("d MMM uuuu HH:mm")
 
     @PreDestroy
     fun destroy() {
@@ -44,7 +42,15 @@ class NotificationProcessor(
                     .doOnNext { log.info("{} is notifying ...", it) }
                     .flatMap { notification ->
                         Mono.just(notification)
-                            .doOnNext { telegramClient.sendMessage(getMessage(it)) }
+                            .doOnNext {
+                                telegramClient.sendMessage(
+                                    TelegramClient.NotificationMessage(
+                                        it.title,
+                                        it.description,
+                                        it.eventAt
+                                    )
+                                )
+                            }
                             .flatMap { notificationRepository.complete(it.id) }
                             .doOnError { log.error("Failed to notify", it) }
                             .doOnSuccess { log.info("{} is notified successfully", notification) }
@@ -55,17 +61,6 @@ class NotificationProcessor(
             .subscribeOn(Schedulers.boundedElastic())
             .subscribe()
         disposable.add(subscription)
-    }
-
-    private fun getMessage(notification: Notification): String {
-        return with(notification) {
-            buildString {
-                append("EVENT: $title\n\n")
-                append("WHEN: ${dateTimeFormatter.format(eventAt)}\n\n")
-                if (description.isNotEmpty()) append("DESCRIPTION: $description\n\n")
-                append("-------------------------------------------------")
-            }
-        }
     }
 
     private fun nowAtZone(zone: String): LocalDateTime {

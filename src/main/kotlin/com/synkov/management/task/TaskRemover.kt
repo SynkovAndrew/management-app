@@ -1,5 +1,6 @@
 package com.synkov.management.task
 
+import com.synkov.management.notification.NotificationRepository
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.slf4j.Logger
@@ -15,9 +16,10 @@ import java.time.Duration
 
 @Component
 @DependsOn("liquibase")
-class TaskSynchronizer(
+class TaskRemover(
     private val todoistClient: TodoistClient,
     private val taskRepository: TaskRepository,
+    private val notificationRepository: NotificationRepository,
     private val transactionalOperator: TransactionalOperator
 ) {
     private val disposable = Disposables.composite()
@@ -31,24 +33,31 @@ class TaskSynchronizer(
     fun start() {
         val subscription = Flux.interval(Duration.ofSeconds(5))
             .onBackpressureDrop()
-            .doOnSubscribe { log.info("Task synchronizer started") }
-            .doFinally { log.info("Task Synchronizer stopped") }
+            .doOnSubscribe { log.info("Task remover started") }
+            .doFinally { log.info("Task remover stopped") }
             .concatMap {
-                todoistClient.findNotSynchronizedTasks()
-                    .map { it.synchronize() }
-                    .concatMap {
-                        taskRepository.create(it)
-                            .flatMap { task -> todoistClient.updateTask(task.id, UpdateTaskRequest(task.labels!!)) }
+                taskRepository.findAllIds()
+                    .concatMap { taskId ->
+                        todoistClient.findTask(taskId)
+                            .map { it.id }
+                            .onErrorResume(TaskNotExistInTodoistException::class.java) {
+                                deleteTaskAndNotifications(taskId)
+                                    .doOnSuccess { log.info("Task(id={}) removed", taskId) }
+                            }
                             .`as`(transactionalOperator::transactional)
-                            .doOnError { error -> log.error("Failed to synchronize $it", error) }
-                            .onErrorResume { Mono.empty() }
-                            .doOnSuccess { _ -> log.info("{} synchronized", it) }
+                            .doOnError { error -> log.error("Task remover failed", error) }
                     }
                     .onErrorResume { Mono.empty() }
             }
             .subscribeOn(Schedulers.boundedElastic())
             .subscribe()
         disposable.add(subscription)
+    }
+
+    private fun deleteTaskAndNotifications(taskId: String): Mono<String> {
+        return taskRepository.delete(taskId)
+            .then(notificationRepository.deleteAllByTaskId(taskId))
+            .thenReturn(taskId)
     }
 
     companion object {

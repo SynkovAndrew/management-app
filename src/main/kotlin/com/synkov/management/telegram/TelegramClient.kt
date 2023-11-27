@@ -9,6 +9,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.io.IOException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Component
 class TelegramClient(
@@ -16,8 +18,9 @@ class TelegramClient(
 ) {
     private val telegramBot = TelegramBot(properties.token)
 
-    fun sendMessage(message: String) {
-        val sendMessage = SendMessage(properties.chatId, message)
+    fun sendMessage(message: NotificationMessage) {
+        val sendMessage = SendMessage(properties.chatId, message.asFormattedMessage())
+            .parseMode(ParseMode.Markdown)
         telegramBot.execute(
             sendMessage,
             object : Callback<SendMessage, SendResponse> {
@@ -36,4 +39,23 @@ class TelegramClient(
     companion object {
         val log: Logger = LoggerFactory.getLogger(this::class.java)
     }
+
+    data class NotificationMessage(
+        val title: String,
+        val description: String,
+        val eventAt: LocalDateTime
+    ) {
+        private val dateTimeFormatter = DateTimeFormatter.ofPattern("d MMM uuuu HH:mm")
+
+        fun asFormattedMessage(): String {
+            return buildString {
+                append("```Reminder\n")
+                append("$title\n\n")
+                append("${dateTimeFormatter.format(eventAt)}\n\n")
+                if (description.isNotEmpty()) append(description)
+                append("```")
+            }
+        }
+    }
 }
+

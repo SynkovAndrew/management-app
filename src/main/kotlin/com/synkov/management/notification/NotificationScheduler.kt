@@ -35,7 +35,7 @@ class NotificationScheduler(
 
     @PostConstruct
     fun start() {
-        val subscription = Flux.interval(Duration.ofSeconds(60))
+        val subscription = Flux.interval(Duration.ofSeconds(5))
             .onBackpressureDrop()
             .doOnSubscribe { log.info("Notification scheduler started") }
             .doFinally { log.info("Notification scheduler stopped") }
@@ -44,8 +44,8 @@ class NotificationScheduler(
                     .filter { it.due?.datetime != null }
                     .flatMap {
                         createNotifications(it)
-                            .then(taskRepository.update(it.copy(isProcessed = true)))
-                            .doOnError { error -> log.error("Failed to schedule notifications for$it", error) }
+                            .then(taskRepository.update(it.process()))
+                            .doOnError { error -> log.error("Failed to schedule notifications for $it", error) }
                             .doOnSuccess { _ -> log.info("Notifications for {} scheduled", it) }
                     }
                     .`as`(transactionalOperator::transactional)

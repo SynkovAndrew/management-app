@@ -16,7 +16,18 @@ data class Task(
     val url: String,
     val isProcessed: Boolean = false,
     val createdAt: LocalDateTime = LocalDateTime.now(ZoneId.of("UTC"))
-)
+) {
+    fun synchronize(): Task {
+        return copy(
+            labels = labels?.let { it + TaskLabel.SYNCHRONIZED }
+                ?: listOf(TaskLabel.SYNCHRONIZED),
+            )
+    }
+
+    fun process(): Task {
+        return copy(isProcessed = true)
+    }
+}
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Due(

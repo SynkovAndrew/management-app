@@ -4,7 +4,6 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.relational.core.query.Criteria
-import org.springframework.data.relational.core.query.CriteriaDefinition
 import org.springframework.data.relational.core.query.Query
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -16,6 +15,13 @@ import java.time.LocalDateTime
 class TaskRepository(
     private val r2dbcEntityTemplate: R2dbcEntityTemplate
 ) {
+
+    fun findAllIds(): Flux<String> {
+        return r2dbcEntityTemplate.databaseClient
+            .sql("SELECT id FROM task")
+            .map { row, _ -> row.get("id", String::class.java)!! }
+            .all()
+    }
 
     fun findNextNotProcessed(): Mono<Task> {
         return r2dbcEntityTemplate.databaseClient
@@ -65,6 +71,24 @@ class TaskRepository(
                     )
             }
             .thenReturn(task)
+    }
+
+    fun delete(id: String): Mono<String> {
+        return Mono
+            .zip(
+                r2dbcEntityTemplate.databaseClient
+                    .sql("DELETE FROM task WHERE id = :id RETURNING id")
+                    .bind("id", id)
+                    .map { row, _ -> row.get("id", String::class.java)!! }
+                    .one(),
+                r2dbcEntityTemplate.databaseClient
+                    .sql("DELETE FROM task_label WHERE task_id = :taskId RETURNING task_id")
+                    .bind("taskId", id)
+                    .map { row, _ -> row.get("task_id", String::class.java)!! }
+                    .all()
+                    .collectList()
+            )
+            .thenReturn(id)
     }
 
     private fun toDomain(entities: List<TaskReadEntity>): Task {
