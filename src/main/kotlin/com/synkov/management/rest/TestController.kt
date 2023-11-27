@@ -18,6 +18,7 @@ class TestController(
                 TelegramClient.NotificationMessage(
                     "Don't forget to buy a thing",
                     "There is a good thing you should buy. It's located near to your home.",
+                    LocalDateTime.now(),
                     LocalDateTime.now()
                 )
             )

@@ -23,6 +23,20 @@ class TaskRepository(
             .all()
     }
 
+    fun findAll(): Flux<Task> {
+        return r2dbcEntityTemplate.databaseClient
+            .sql(
+                """SELECT * FROM task t
+                   LEFT JOIN task_label tl ON tl.task_id = t.id
+                   ORDER BY t.created_at""".trimMargin()
+            )
+            .map { row, meta -> r2dbcEntityTemplate.converter.read(TaskReadEntity::class.java, row, meta) }
+            .all()
+            .bufferUntilChanged { it.id }
+            .filter { it.isNotEmpty() }
+            .map { toDomain(it) }
+    }
+
     fun findNextNotProcessed(): Mono<Task> {
         return r2dbcEntityTemplate.databaseClient
             .sql(

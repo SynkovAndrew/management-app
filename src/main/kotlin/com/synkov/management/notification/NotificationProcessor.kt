@@ -47,6 +47,7 @@ class NotificationProcessor(
                                     TelegramClient.NotificationMessage(
                                         it.title,
                                         it.description,
+                                        it.notifyAt,
                                         it.eventAt
                                     )
                                 )
