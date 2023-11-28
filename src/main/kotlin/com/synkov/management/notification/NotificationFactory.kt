@@ -1,13 +1,11 @@
 package com.synkov.management.notification
 
-import com.synkov.management.offsetToZone
 import com.synkov.management.task.Task
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.ZoneId
 import java.util.*
 
 @Component
@@ -15,9 +13,15 @@ class NotificationFactory {
 
     fun composeForTask(task: Task): Flux<Notification> {
         return Mono.justOrEmpty(task.due?.datetime)
-            .map { it.offsetToZone(task.due!!.timezone!!) }
             .flatMapMany { eventAt ->
-                Flux.fromIterable(createNotifyAt(eventAt,task.due!!.timezone!!))
+                Flux
+                    .fromIterable(
+                        if (task.due!!.isRecurring) {
+                            createNotifyAtForRecurring(eventAt)
+                        } else {
+                            createNotifyAt(eventAt)
+                        }
+                    )
                     .map {
                         Notification(
                             UUID.randomUUID(),
@@ -32,8 +36,28 @@ class NotificationFactory {
             }
     }
 
-    private fun createNotifyAt(eventAt: LocalDateTime, zone: String): List<LocalDateTime> {
-        val now = LocalDateTime.now(ZoneId.of("UTC")).offsetToZone(zone)
+    private fun createNotifyAtForRecurring(eventAt: LocalDateTime): List<LocalDateTime> {
+        val now = LocalDateTime.now()
+        return when {
+            eventAt.minusHours(48) >= now -> listOf(
+                eventAt.minusMinutes(30),
+                LocalDateTime.of(
+                    eventAt.minusDays(1).toLocalDate(),
+                    LocalTime.of(19, 0)
+                )
+            )
+
+            eventAt.minusHours(48) <= now && now <= eventAt.minusHours(1) -> listOf(
+                eventAt.minusMinutes(30),
+                eventAt.minusHours(4),
+            )
+
+            else -> listOf()
+        }
+    }
+
+    private fun createNotifyAt(eventAt: LocalDateTime): List<LocalDateTime> {
+        val now = LocalDateTime.now()
         return when {
             // more than 3 days to event
             eventAt.minusDays(3) >= now -> listOf(

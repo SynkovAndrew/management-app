@@ -11,7 +11,12 @@ import java.util.UUID
 @Component
 interface NotificationRepository : ReactiveCrudRepository<Notification, UUID> {
 
-    fun findAllByOrderByNotifyAt(): Flux<Notification>
+    @Query(
+        """SELECT * FROM notification 
+           WHERE completed = false 
+           ORDER BY notify_at"""
+    )
+    fun findNotCompleted(): Flux<Notification>
 
     @Query(
         """SELECT * FROM notification 

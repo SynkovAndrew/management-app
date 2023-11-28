@@ -4,7 +4,6 @@ import com.pengrad.telegrambot.UpdatesListener
 import com.pengrad.telegrambot.model.Update
 import com.synkov.management.notification.NotificationRepository
 import com.synkov.management.task.TaskRepository
-import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Component
 
 @Component
@@ -56,9 +55,10 @@ class TelegramBotCommandHandler(
     }
 
     private fun handleNotificationsCommand() {
-        notificationRepository.findAllByOrderByNotifyAt()
+        notificationRepository.findNotCompleted()
             .collectList()
             .block()
+            ?.sortedBy { it.notifyAt }
             ?.forEach {
                 telegramClient.sendMessage(
                     TelegramClient.NotificationMessage(

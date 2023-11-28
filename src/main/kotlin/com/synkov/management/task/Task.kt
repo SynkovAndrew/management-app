@@ -1,6 +1,7 @@
 package com.synkov.management.task
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -34,6 +35,7 @@ data class Task(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Due(
     val date: LocalDate,
+    @JsonProperty("is_recurring")
     val isRecurring: Boolean,
     val datetime: LocalDateTime?,
     val string: String,
