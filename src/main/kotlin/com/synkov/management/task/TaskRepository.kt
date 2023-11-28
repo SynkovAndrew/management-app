@@ -16,7 +16,7 @@ class TaskRepository(
     private val r2dbcEntityTemplate: R2dbcEntityTemplate
 ) {
 
-    fun findAllIds(): Flux<String> {
+    fun findIds(): Flux<String> {
         return r2dbcEntityTemplate.databaseClient
             .sql("SELECT id FROM task")
             .map { row, _ -> row.get("id", String::class.java)!! }
@@ -30,6 +30,20 @@ class TaskRepository(
                    LEFT JOIN task_label tl ON tl.task_id = t.id
                    ORDER BY t.created_at""".trimMargin()
             )
+            .map { row, meta -> r2dbcEntityTemplate.converter.read(TaskReadEntity::class.java, row, meta) }
+            .all()
+            .bufferUntilChanged { it.id }
+            .filter { it.isNotEmpty() }
+            .map { toDomain(it) }
+    }
+
+    fun findIdsByRecurring(isRecurring: Boolean): Flux<Task> {
+        return r2dbcEntityTemplate.databaseClient
+            .sql(
+                """SELECT id FROM task
+                   WHERE is_recurring = :isRecurring""".trimMargin()
+            )
+            .bind("isRecurring", isRecurring)
             .map { row, meta -> r2dbcEntityTemplate.converter.read(TaskReadEntity::class.java, row, meta) }
             .all()
             .bufferUntilChanged { it.id }
@@ -103,6 +117,14 @@ class TaskRepository(
                     .collectList()
             )
             .thenReturn(id)
+    }
+
+    fun complete(id: String): Mono<String> {
+        return r2dbcEntityTemplate.databaseClient
+            .sql("UPDATE task SET is_completed = true WHERE id = :id RETURNING id")
+            .bind("id", id)
+            .map { row, _ -> row.get("id", String::class.java)!! }
+            .one()
     }
 
     private fun toDomain(entities: List<TaskReadEntity>): Task {

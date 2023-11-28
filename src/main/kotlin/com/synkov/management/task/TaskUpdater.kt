@@ -1,5 +1,6 @@
 package com.synkov.management.task
 
+import com.synkov.management.notification.NotificationFactory
 import com.synkov.management.notification.NotificationRepository
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
@@ -13,13 +14,15 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import java.time.Duration
+import java.time.LocalDateTime
 
 @Component
 @DependsOn("liquibase")
-class TaskRemover(
+class TaskUpdater(
     private val todoistClient: TodoistClient,
     private val taskRepository: TaskRepository,
     private val notificationRepository: NotificationRepository,
+    private val notificationFactory: NotificationFactory,
     private val transactionalOperator: TransactionalOperator
 ) {
     private val disposable = Disposables.composite()
@@ -33,19 +36,19 @@ class TaskRemover(
     fun start() {
         val subscription = Flux.interval(Duration.ofSeconds(5))
             .onBackpressureDrop()
-            .doOnSubscribe { log.info("Task remover started") }
-            .doFinally { log.info("Task remover stopped") }
+            .doOnSubscribe { log.info("Task updater started") }
+            .doFinally { log.info("Task updater stopped") }
             .concatMap {
-                taskRepository.findIds()
-                    .concatMap { taskId ->
-                        todoistClient.findTask(taskId)
-                            .map { it.id }
-                            .onErrorResume(TaskNotExistInTodoistException::class.java) {
-                                deleteTaskAndNotifications(taskId)
-                                    .doOnSuccess { log.info("Task(id={}) removed", taskId) }
+                taskRepository.findAll()
+                    .concatMap { task ->
+                        todoistClient.findTask(task.id)
+                            .filter { !TaskEqualityTester.test(it, task) }
+                            .flatMap {
+                                updateTaskAndNotifications(it, task.due?.datetime)
+                                    .doOnSuccess { _ -> log.info("Task(id={}) updated", it.id) }
                             }
                             .`as`(transactionalOperator::transactional)
-                            .doOnError { error -> log.error("Task remover failed", error) }
+                            .doOnError { error -> log.error("Task updater failed", error) }
                     }
                     .onErrorResume { Mono.empty() }
             }
@@ -54,10 +57,19 @@ class TaskRemover(
         disposable.add(subscription)
     }
 
-    private fun deleteTaskAndNotifications(taskId: String): Mono<String> {
-        return taskRepository.delete(taskId)
-            .then(notificationRepository.deleteAllByTaskId(taskId))
-            .thenReturn(taskId)
+    private fun updateTaskAndNotifications(task: Task, oldDateTime: LocalDateTime?): Mono<Task> {
+        return taskRepository.update(task)
+            .filter { it.due?.datetime != oldDateTime }
+            .flatMap { updateNotifications(it) }
+            .defaultIfEmpty(task)
+    }
+
+    private fun updateNotifications(task: Task): Mono<Task> {
+        return notificationRepository.completeForTask(task.id)
+            .flatMapMany { notificationFactory.composeForTask(task) }
+            .flatMap { notificationRepository.save(it) }
+            .collectList()
+            .thenReturn(task)
     }
 
     companion object {

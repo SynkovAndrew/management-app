@@ -16,7 +16,7 @@ import java.time.Duration
 
 @Component
 @DependsOn("liquibase")
-class TaskRemover(
+class TaskCompleter(
     private val todoistClient: TodoistClient,
     private val taskRepository: TaskRepository,
     private val notificationRepository: NotificationRepository,
@@ -33,19 +33,19 @@ class TaskRemover(
     fun start() {
         val subscription = Flux.interval(Duration.ofSeconds(5))
             .onBackpressureDrop()
-            .doOnSubscribe { log.info("Task remover started") }
-            .doFinally { log.info("Task remover stopped") }
+            .doOnSubscribe { log.info("Task completer started") }
+            .doFinally { log.info("Task completer stopped") }
             .concatMap {
                 taskRepository.findIds()
                     .concatMap { taskId ->
                         todoistClient.findTask(taskId)
-                            .map { it.id }
-                            .onErrorResume(TaskNotExistInTodoistException::class.java) {
-                                deleteTaskAndNotifications(taskId)
-                                    .doOnSuccess { log.info("Task(id={}) removed", taskId) }
+                            .filter { it.isCompleted }
+                            .flatMap {
+                                completeTaskAndNotifications(it.id)
+                                    .doOnSuccess { log.info("Task(id={}) completed", taskId) }
                             }
                             .`as`(transactionalOperator::transactional)
-                            .doOnError { error -> log.error("Task remover failed", error) }
+                            .doOnError { error -> log.error("Task completer failed", error) }
                     }
                     .onErrorResume { Mono.empty() }
             }
@@ -54,9 +54,9 @@ class TaskRemover(
         disposable.add(subscription)
     }
 
-    private fun deleteTaskAndNotifications(taskId: String): Mono<String> {
-        return taskRepository.delete(taskId)
-            .then(notificationRepository.deleteAllByTaskId(taskId))
+    private fun completeTaskAndNotifications(taskId: String): Mono<String> {
+        return taskRepository.complete(taskId)
+            .then(notificationRepository.completeForTask(taskId))
             .thenReturn(taskId)
     }
 

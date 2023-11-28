@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.util.Objects
+import java.util.function.BiPredicate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Task(
@@ -21,7 +23,7 @@ data class Task(
         return copy(
             labels = labels?.let { it + TaskLabel.SYNCHRONIZED }
                 ?: listOf(TaskLabel.SYNCHRONIZED),
-            )
+        )
     }
 
     fun process(): Task {
@@ -40,4 +42,14 @@ data class Due(
 
 enum class TaskLabel {
     SYNCHRONIZED
+}
+
+object TaskEqualityTester : BiPredicate<Task, Task> {
+    override fun test(t: Task, u: Task): Boolean {
+        return (t.content == u.content) &&
+                (t.description == u.description) &&
+                (t.due?.date == u.due?.date) &&
+                (t.due?.isRecurring == u.due?.isRecurring) &&
+                (t.due?.datetime == u.due?.datetime)
+    }
 }

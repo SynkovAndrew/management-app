@@ -24,5 +24,8 @@ interface NotificationRepository : ReactiveCrudRepository<Notification, UUID> {
     @Query("UPDATE notification SET completed = true WHERE id = :notificationId")
     fun complete(notificationId: UUID): Mono<UUID>
 
+    @Query("UPDATE notification SET completed = true WHERE task_id = :taskId")
+    fun completeForTask(taskId: String): Mono<UUID>
+
     fun deleteAllByTaskId(taskId: String): Mono<Void>
 }
