@@ -13,6 +13,7 @@ import reactor.core.Disposables
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.switchIfEmpty
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -59,9 +60,8 @@ class TaskUpdater(
 
     private fun updateTaskAndNotifications(task: Task, oldDateTime: LocalDateTime?): Mono<Task> {
         return taskRepository.update(task)
-            .filter { it.due?.datetime != oldDateTime }
-            .flatMap { updateNotifications(it) }
-            .defaultIfEmpty(task)
+            .filter { it.due?.datetime == oldDateTime }
+            .switchIfEmpty { updateNotifications(task) }
     }
 
     private fun updateNotifications(task: Task): Mono<Task> {
