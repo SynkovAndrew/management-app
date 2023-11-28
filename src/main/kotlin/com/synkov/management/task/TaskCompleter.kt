@@ -37,7 +37,7 @@ class TaskCompleter(
             .doFinally { log.info("Task completer stopped") }
             .concatMap {
                 taskRepository.findIds()
-                    .concatMap { taskId ->
+                    .flatMap { taskId ->
                         todoistClient.findTask(taskId)
                             .filter { it.isCompleted }
                             .flatMap {

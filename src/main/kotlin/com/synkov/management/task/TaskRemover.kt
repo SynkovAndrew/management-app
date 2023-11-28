@@ -37,7 +37,7 @@ class TaskRemover(
             .doFinally { log.info("Task remover stopped") }
             .concatMap {
                 taskRepository.findIds()
-                    .concatMap { taskId ->
+                    .flatMap { taskId ->
                         todoistClient.findTask(taskId)
                             .map { it.id }
                             .onErrorResume(TaskNotExistInTodoistException::class.java) {

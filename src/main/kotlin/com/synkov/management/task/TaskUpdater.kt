@@ -41,7 +41,7 @@ class TaskUpdater(
             .doFinally { log.info("Task updater stopped") }
             .concatMap {
                 taskRepository.findAll()
-                    .concatMap { task ->
+                    .flatMap { task ->
                         todoistClient.findTask(task.id)
                             .filter { !TaskEqualityTester.test(it, task) }
                             .flatMap {

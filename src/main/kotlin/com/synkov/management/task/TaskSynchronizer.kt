@@ -36,7 +36,7 @@ class TaskSynchronizer(
             .concatMap {
                 todoistClient.findNotSynchronizedTasks()
                     .map { it.synchronize() }
-                    .concatMap {
+                    .flatMap {
                         taskRepository.create(it)
                             .flatMap { task -> todoistClient.updateTask(task.id, UpdateTaskRequest(task.labels!!)) }
                             .`as`(transactionalOperator::transactional)
