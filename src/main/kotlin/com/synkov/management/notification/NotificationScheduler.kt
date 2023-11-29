@@ -32,7 +32,7 @@ class NotificationScheduler(
 
     @PostConstruct
     fun start() {
-        val subscription = Flux.interval(Duration.ofSeconds(30))
+        val subscription = Flux.interval(Duration.ofSeconds(5))
             .onBackpressureDrop()
             .doOnSubscribe { log.info("Notification scheduler started") }
             .doFinally { log.info("Notification scheduler stopped") }

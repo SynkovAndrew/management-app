@@ -35,7 +35,7 @@ class TaskUpdater(
 
     @PostConstruct
     fun start() {
-        val subscription = Flux.interval(Duration.ofSeconds(60))
+        val subscription = Flux.interval(Duration.ofSeconds(20))
             .onBackpressureDrop()
             .doOnSubscribe { log.info("Task updater started") }
             .doFinally { log.info("Task updater stopped") }
