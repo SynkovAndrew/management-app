@@ -8,3 +8,7 @@ fun LocalDateTime.offsetToZone(zone: String) : LocalDateTime {
         .withZoneSameInstant(ZoneId.of(zone))
         .toLocalDateTime()
 }
+
+fun <T> List<T>.exactlyEquals(list: List<T>): Boolean {
+    return size == list.size && containsAll(list)
+}

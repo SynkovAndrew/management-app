@@ -38,7 +38,7 @@ class TaskSynchronizer(
                     .map { it.synchronize() }
                     .flatMap {
                         taskRepository.create(it)
-                            .flatMap { task -> todoistClient.updateTask(task.id, UpdateTaskRequest(task.labels!!)) }
+                            .flatMap { task -> todoistClient.updateTask(task.id, UpdateTaskRequest(task.labels)) }
                             .`as`(transactionalOperator::transactional)
                             .doOnError { error -> log.error("Failed to synchronize $it", error) }
                             .onErrorResume { Mono.empty() }

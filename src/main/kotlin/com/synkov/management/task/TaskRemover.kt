@@ -36,9 +36,10 @@ class TaskRemover(
             .doOnSubscribe { log.info("Task remover started") }
             .doFinally { log.info("Task remover stopped") }
             .concatMap {
-                taskRepository.findIds()
+                taskRepository.findNotCompletedIds()
                     .flatMap { taskId ->
                         todoistClient.findTask(taskId)
+                            .filter { it.isSynchronized() }
                             .map { it.id }
                             .onErrorResume(TaskNotExistInTodoistException::class.java) {
                                 deleteTaskAndNotifications(taskId)

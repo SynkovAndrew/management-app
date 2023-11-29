@@ -40,13 +40,22 @@ class TaskUpdater(
             .doOnSubscribe { log.info("Task updater started") }
             .doFinally { log.info("Task updater stopped") }
             .concatMap {
-                taskRepository.findAll()
+                taskRepository.findNotCompleted()
                     .flatMap { task ->
                         todoistClient.findTask(task.id)
-                            .filter { !TaskEqualityTester.test(it, task) }
-                            .flatMap {
-                                updateTaskAndNotifications(it, task.due?.datetime)
-                                    .doOnSuccess { _ -> log.info("Task(id={}) updated", it.id) }
+                            .filter { it.isSynchronized() }
+                            .filter { remoteTask -> !TaskEqualityTester.test(remoteTask, task) }
+                            .map { remoteTask ->
+                                task.update(
+                                    remoteTask.content,
+                                    remoteTask.description,
+                                    remoteTask.due,
+                                    remoteTask.labels
+                                )
+                            }
+                            .flatMap { updated ->
+                                updateTaskAndNotifications(updated, task)
+                                    .doOnSuccess { _ -> log.info("Task(id={}) updated", updated.id) }
                             }
                             .`as`(transactionalOperator::transactional)
                             .doOnError { error -> log.error("Task updater failed", error) }
@@ -58,17 +67,19 @@ class TaskUpdater(
         disposable.add(subscription)
     }
 
-    private fun updateTaskAndNotifications(task: Task, oldDateTime: LocalDateTime?): Mono<Task> {
+    private fun updateTaskAndNotifications(task: Task, oldTask: Task): Mono<Task> {
         return taskRepository.update(task)
-            .filter { it.due?.datetime == oldDateTime }
+            .filter { TaskNotificationEqualityTester.test(task, oldTask) }
             .switchIfEmpty { updateNotifications(task) }
     }
 
     private fun updateNotifications(task: Task): Mono<Task> {
         return notificationRepository.completeForTask(task.id)
-            .flatMapMany { notificationFactory.composeForTask(task) }
-            .flatMap { notificationRepository.save(it) }
-            .collectList()
+            .then(
+                notificationFactory.composeForTask(task)
+                    .flatMap { notificationRepository.save(it) }
+                    .collectList()
+            )
             .thenReturn(task)
     }
 

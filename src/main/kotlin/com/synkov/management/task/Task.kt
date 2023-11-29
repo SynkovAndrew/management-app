@@ -2,6 +2,7 @@ package com.synkov.management.task
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.synkov.management.exactlyEquals
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -20,12 +21,34 @@ data class Task(
     val isProcessed: Boolean = false,
     val createdAt: LocalDateTime = LocalDateTime.now(ZoneId.of("UTC"))
 ) {
+    fun isSynchronized() = labels.contains(TaskLabel.SYNCHRONIZED)
+
     fun synchronize(): Task {
         return copy(labels = labels + TaskLabel.SYNCHRONIZED)
     }
 
     fun process(): Task {
         return copy(isProcessed = true)
+    }
+
+    fun update(
+        content: String,
+        description: String,
+        due: Due?,
+        labels: List<TaskLabel>
+    ): Task {
+        return copy(
+            content = content,
+            description = description,
+            due = due?.date?.let {
+                this.due?.copy(
+                    date = it,
+                    isRecurring = due.isRecurring,
+                    datetime = due.datetime
+                )
+            },
+            labels = labels
+        )
     }
 }
 
@@ -59,13 +82,11 @@ enum class TaskLabel(val remindAt: (LocalDateTime) -> LocalDateTime) {
     REMIND_1_WEEK_BEFORE_IN_EVENING({ LocalDateTime.of(it.minusWeeks(1).toLocalDate(), evening) }),
     REMIND_1_WEEK_BEFORE_IN_MIDDAY({ LocalDateTime.of(it.minusWeeks(1).toLocalDate(), midday) }),
     REMIND_1_WEEK_BEFORE_IN_MORNING({ LocalDateTime.of(it.minusWeeks(1).toLocalDate(), morning) });
-
-    private companion object {
-        val morning: LocalTime = LocalTime.of(13, 0)
-        val midday: LocalTime = LocalTime.of(13, 0)
-        val evening: LocalTime = LocalTime.of(19, 0)
-    }
 }
+
+private val morning: LocalTime = LocalTime.of(9, 0)
+private val midday: LocalTime = LocalTime.of(13, 0)
+private val evening: LocalTime = LocalTime.of(19, 0)
 
 object TaskEqualityTester : BiPredicate<Task, Task> {
     override fun test(t: Task, u: Task): Boolean {
@@ -73,6 +94,15 @@ object TaskEqualityTester : BiPredicate<Task, Task> {
                 (t.description == u.description) &&
                 (t.due?.date == u.due?.date) &&
                 (t.due?.isRecurring == u.due?.isRecurring) &&
-                (t.due?.datetime == u.due?.datetime)
+                (t.due?.datetime == u.due?.datetime) &&
+                (t.labels.exactlyEquals(u.labels))
+    }
+}
+
+object TaskNotificationEqualityTester : BiPredicate<Task, Task> {
+    override fun test(t: Task, u: Task): Boolean {
+        return (t.due?.date == u.due?.date) &&
+                (t.due?.datetime == u.due?.datetime) &&
+                (t.labels.exactlyEquals(u.labels))
     }
 }

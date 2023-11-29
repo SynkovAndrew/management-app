@@ -36,9 +36,10 @@ class TaskCompleter(
             .doOnSubscribe { log.info("Task completer started") }
             .doFinally { log.info("Task completer stopped") }
             .concatMap {
-                taskRepository.findIds()
+                taskRepository.findNotCompletedIds()
                     .flatMap { taskId ->
                         todoistClient.findTask(taskId)
+                            .filter { it.isSynchronized() }
                             .filter { it.isCompleted }
                             .flatMap {
                                 completeTaskAndNotifications(it.id)

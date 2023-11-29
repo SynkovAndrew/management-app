@@ -38,7 +38,6 @@ class NotificationScheduler(
             .doFinally { log.info("Notification scheduler stopped") }
             .concatMap {
                 taskRepository.findNextNotProcessed()
-                    .filter { it.due?.datetime != null }
                     .flatMap {
                         createNotifications(it)
                             .then(taskRepository.update(it.process()))

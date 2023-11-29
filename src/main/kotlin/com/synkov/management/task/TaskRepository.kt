@@ -16,13 +16,6 @@ class TaskRepository(
     private val r2dbcEntityTemplate: R2dbcEntityTemplate
 ) {
 
-    fun findIds(): Flux<String> {
-        return r2dbcEntityTemplate.databaseClient
-            .sql("SELECT id FROM task")
-            .map { row, _ -> row.get("id", String::class.java)!! }
-            .all()
-    }
-
     fun findAll(): Flux<Task> {
         return r2dbcEntityTemplate.databaseClient
             .sql(
@@ -37,13 +30,23 @@ class TaskRepository(
             .map { toDomain(it) }
     }
 
-    fun findIdsByRecurring(isRecurring: Boolean): Flux<Task> {
+    fun findNotCompletedIds(): Flux<String> {
+        return r2dbcEntityTemplate.databaseClient
+            .sql("SELECT id FROM task WHERE is_completed = false FOR UPDATE SKIP LOCKED")
+            .map { row, _ -> row.get("id", String::class.java)!! }
+            .all()
+    }
+
+    fun findNotCompleted(): Flux<Task> {
         return r2dbcEntityTemplate.databaseClient
             .sql(
-                """SELECT id FROM task
-                   WHERE is_recurring = :isRecurring""".trimMargin()
+                """SELECT * FROM task t 
+                   LEFT JOIN task_label tl ON tl.task_id = t.id 
+                   WHERE is_completed = false 
+                   ORDER BY t.created_at 
+                   FOR UPDATE OF t SKIP LOCKED
+                   """.trimMargin()
             )
-            .bind("isRecurring", isRecurring)
             .map { row, meta -> r2dbcEntityTemplate.converter.read(TaskReadEntity::class.java, row, meta) }
             .all()
             .bufferUntilChanged { it.id }
@@ -57,6 +60,7 @@ class TaskRepository(
                 """SELECT * FROM task t
                    LEFT JOIN task_label tl ON tl.task_id = t.id
                    WHERE t.is_processed = false
+                   AND t.datetime IS NOT NULL 
                    ORDER BY t.created_at
                    LIMIT 1
                    FOR UPDATE OF t SKIP LOCKED""".trimMargin()

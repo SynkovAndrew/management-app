@@ -6,6 +6,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.util.retry.Retry
+import reactor.util.retry.RetryBackoffSpec
 import java.time.Duration
 
 @Component
@@ -30,11 +31,7 @@ class TodoistClient(
             }
             .bodyToFlux(Task::class.java)
             .map { mapAccordingToTimezone(it) }
-            .retryWhen(
-                Retry.backoff(3, Duration.ofSeconds(2))
-                    .filter { it is InternalServerError }
-                    .onRetryExhaustedThrow { _, retrySignal -> retrySignal.failure() }
-            )
+            .retryWhen(retryBackoff())
     }
 
     fun findTask(id: String): Mono<Task> {
@@ -52,11 +49,7 @@ class TodoistClient(
             }
             .bodyToMono(Task::class.java)
             .map { mapAccordingToTimezone(it) }
-            .retryWhen(
-                Retry.backoff(3, Duration.ofSeconds(2))
-                    .filter { it is InternalServerError }
-                    .onRetryExhaustedThrow { _, retrySignal -> retrySignal.failure() }
-            )
+            .retryWhen(retryBackoff())
     }
 
     fun updateTask(id: String, request: UpdateTaskRequest): Mono<Task> {
@@ -69,11 +62,13 @@ class TodoistClient(
             }
             .bodyToMono(Task::class.java)
             .map { mapAccordingToTimezone(it) }
-            .retryWhen(
-                Retry.backoff(3, Duration.ofSeconds(2))
-                    .filter { it is InternalServerError }
-                    .onRetryExhaustedThrow { _, retrySignal -> retrySignal.failure() }
-            )
+            .retryWhen(retryBackoff())
+    }
+
+    private fun retryBackoff(): RetryBackoffSpec {
+        return Retry.backoff(3, Duration.ofSeconds(2))
+            .filter { it is InternalServerError }
+            .onRetryExhaustedThrow { _, retrySignal -> retrySignal.failure() }
     }
 
     private fun mapAccordingToTimezone(task: Task): Task {
