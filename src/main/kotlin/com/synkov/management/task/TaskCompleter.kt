@@ -31,7 +31,7 @@ class TaskCompleter(
 
     @PostConstruct
     fun start() {
-        val subscription = Flux.interval(Duration.ofSeconds(5))
+        val subscription = Flux.interval(Duration.ofSeconds(60))
             .onBackpressureDrop()
             .doOnSubscribe { log.info("Task completer started") }
             .doFinally { log.info("Task completer stopped") }
